@@ -5,8 +5,9 @@ import { Content } from "@/lib/aeon/content.js";
 import { Store } from "@/lib/aeon/store.js";
 import { UI } from "@/lib/aeon/visuals.js";
 import { Icon, KindPill, Modal, ProfileForm, Svg, ZoneField, download, hash, uid } from "./bits";
+import { ReportStudio } from "./ReportStudio";
 
-const PAGES = ["today", "chart", "connections", "almanac", "journal"] as const;
+const PAGES = ["today", "chart", "connections", "almanac", "readings", "journal"] as const;
 type Page = (typeof PAGES)[number];
 const MOODS = ["Open", "Grounded", "Restless", "Hopeful", "Reflective"];
 const NAV: [Page, string, string][] = [
@@ -14,6 +15,7 @@ const NAV: [Page, string, string][] = [
   ["chart", "chart", "Your chart"],
   ["connections", "people", "Connections"],
   ["almanac", "calendar", "Almanac"],
+  ["readings", "spark", "Readings"],
   ["journal", "journal", "Journal"],
 ];
 
@@ -181,6 +183,7 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
       chart: "Your chart",
       connections: "Connections",
       almanac: "Almanac",
+      readings: "Illustrated Readings",
       journal: "Journal",
     };
     document.title = `${titles[page]} · AEON`;
@@ -371,6 +374,9 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
               </button>
               <button className="text-button" type="button" onClick={() => setModal({ type: "reading", id: "main" })}>
                 Why this reading? <Icon name="info" />
+              </button>
+              <button className="text-button" type="button" onClick={() => navigate("readings")}>
+                Illustrated reading studio <Icon name="spark" />
               </button>
             </div>
           </div>
@@ -1673,6 +1679,16 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
           )}
           {page === "connections" && connectionsPage()}
           {page === "almanac" && almanacPage()}
+          {page === "readings" && (
+            <ReportStudio
+              owner={owner}
+              people={state.people}
+              houseSystem={state.prefs.house}
+              zone={state.prefs.zone}
+              onEditProfile={() => setModal({ type: "profile", kind: "owner", id: null })}
+              onOpenChart={() => navigate("chart")}
+            />
+          )}
           {page === "journal" && journalPage()}
         </main>
         <footer className="site-footer">
@@ -1698,7 +1714,7 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
             <p>A missing birth time leaves houses and rising unassigned. An approximate time uses a ±1 hour range. Historical timezone rules come from your browser and may be less reliable before 1970. City coordinates are city-centre estimates; you can enter custom coordinates and a timezone.</p>
             <h3>A space that stays yours.</h3>
             <p>Birth details, saved comparisons and journal content are processed and stored in your browser. Export a backup before clearing browser data or moving devices. Sharing a reflection happens only when you choose it.</p>
-            <p>This release includes local profiles and a guided chart reflection tool. Cloud accounts, connected friends and payments are not connected.</p>
+            <p>This release includes local profiles, a guided chart reflection tool and locally generated illustrated PDF dossiers. Cloud accounts, connected friends, cloud report storage and payments are not connected.</p>
             <h3>Made with open tools.</h3>
             <p>
               Astronomy Engine by Don Cross (MIT). City search uses a local GeoNames cities15000 data snapshot (Creative Commons Attribution 4.0).{" "}
