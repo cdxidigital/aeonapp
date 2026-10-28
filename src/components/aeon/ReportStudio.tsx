@@ -66,7 +66,7 @@ export function ReportStudio({ owner, people, houseSystem, zone, onEditProfile, 
   const partnerChart = useMemo(() => partner ? Astro.chart(partner, houseSystem) : null, [partner, houseSystem]);
   const crossAspects = useMemo(() => partnerChart ? Astro.aspects(chart.bodies, partnerChart.bodies, 4) : [], [chart, partnerChart]);
   const months = useMemo(() => reportType === "year" ? monthlySky(chart, zone) : [], [reportType, chart, zone]);
-  const estimate = 49 + (reportType === "year" ? 2 : reportType === "synastry" ? 1 : 0);
+  const estimate = 50 + (reportType === "year" ? 2 : reportType === "synastry" ? 1 : 0);
   const canGenerate = reportType !== "synastry" || (partner && consent);
 
   function selectKind(id) {
