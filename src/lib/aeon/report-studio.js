@@ -172,6 +172,10 @@ export function buildReportPages({ profile, chart, type = "blueprint", style = "
       block("ZODIAC & METHOD", "Modern tropical, geocentric coordinates from " + chart.engine + ". House system: " + chart.system + ". Reference birth instant: " + chart.date + "."),
       block("BIRTH-TIME CERTAINTY", chart.precision === "unknown" ? "Time unknown. Local noon is used as a calculation reference. Rising sign and houses are withheld; Moon and some sign positions may vary." : chart.precision === "approximate" ? "Approximate time. A one-hour window on each side is considered. House and angle claims may shift." : "Exact time as entered. Historical timezone rules are supplied by the device and may be uncertain for older dates."),
     ], "ledger", { chart }),
+    section("YOUR CALCULATED SKY", "Your natal wheel", "Positions and houses are calculated. Symbols are interpretive.", [
+      block("READING THE CIRCLES", "The outer ring shows the twelve tropical zodiac signs, the middle ring shows planetary initials at their calculated longitudes and the inner lines show selected natal aspects. Houses are marked only when calculated."),
+      block("EXACT COORDINATES", "The preceding placement ledger and following planetary chapters record precise positions and uncertainty. The wheel is a visual overview, not a substitute for the numeric data."),
+    ], "wheel", { chart, aspects: relevant }),
     section("THE BIG THREE", "Three ways to begin", "Not three labels to live up to, but three traditional conversations.", [
       block("SUN / EXPRESSION", big(sun, "Sun") + ". The Sun is a symbol for what helps you feel alive and visible."),
       block("MOON / INNER WEATHER", big(moon, "Moon") + ". The Moon is a traditional lens for emotional rhythms and comfort."),
@@ -319,56 +323,102 @@ function art(style, page, chart) {
     }
     out += txt("A E O N",238,475,19,accent,"F3");
   } else if (page.art === "bars") {
-    out += rect(54, 563, 486, 142, bg);
+    out += rect(54, 553, 486, 115, bg);
     const entries = Object.entries(page.payload?.counts || {});
     entries.forEach(([label, count], i) => {
       const x=66+i*(452/entries.length), maxW=452/entries.length-18;
-      out += txt(label,x,685,10,fg,"F3");
-      out += rect(x,635,maxW,8,accent);
-      out += rect(x,635,maxW*Math.max(0, Math.min(1,Number(count)/10)),8,fg);
-      out += txt(String(count)+" / 10",x,610,12,fg,"F3");
+      out += txt(label,x,651,10,fg,"F3");
+      out += rect(x,620,maxW,8,accent);
+      out += rect(x,620,maxW*Math.max(0, Math.min(1,Number(count)/10)),8,fg);
+      out += txt(String(count)+" / 10",x,586,12,fg,"F3");
     });
   } else if (page.art === "ledger") {
     const rows=page.payload?.chart?.bodies || [];
-    out+=rect(54, 542, 486, 198, accent);
+    out+=rect(54, 547, 486, 122, accent);
     rows.forEach((b,i)=>{
-      const col=i<5?0:1, index=i%5, x=72+col*244, y=712-index*34;
+      const col=i<5?0:1, index=i%5, x=72+col*244, y=650-index*22;
       out+=txt(b.body,x,y,10,bg,"F3");
-      out+=txt(SIGNS[b.sign]+" / "+(b.house == null ? "house ?" : "H"+b.house),x,y-12,9,bg);
+      out+=txt(SIGNS[b.sign]+" / "+(b.house == null ? "house ?" : "H"+b.house),x,y-10,9,bg);
     });
   } else if (page.art === "aspects") {
-    out += circle(298,639,90,accent,false,1.1);
+    out += circle(298,609,52,accent,false,1.1);
     const bodies=page.payload?.chart?.bodies || chart.bodies;
     const list=page.payload?.aspects || [];
     for(const b of bodies) {
       const a=(b.lon-90)*Math.PI/180;
-      out+=circle(298+90*Math.cos(a),639+90*Math.sin(a),3,accent,true);
+      out+=circle(298+52*Math.cos(a),609+52*Math.sin(a),3,accent,true);
     }
     for(const a of list.slice(0,12)) {
       const p=bodies.find(b=>b.body===a.left),q=bodies.find(b=>b.body===a.right);
       if(!p||!q)continue;
-      out+=line(298+90*Math.cos((p.lon-90)*Math.PI/180),639+90*Math.sin((p.lon-90)*Math.PI/180),
-        298+90*Math.cos((q.lon-90)*Math.PI/180),639+90*Math.sin((q.lon-90)*Math.PI/180),accent,.8);
+      out+=line(298+52*Math.cos((p.lon-90)*Math.PI/180),609+52*Math.sin((p.lon-90)*Math.PI/180),
+        298+52*Math.cos((q.lon-90)*Math.PI/180),609+52*Math.sin((q.lon-90)*Math.PI/180),accent,.8);
     }
   } else {
-    const r=page.art==="planet"?94:page.art==="house"?80:68;
-    out+=circle(298,636,r,accent,false,1.2);
-    out+=circle(298,636,r*.68,accent,false,.75);
+    const r=page.art==="planet"?50:page.art==="house"?55:48;
+    out+=circle(298,610,r,accent,false,1.2);
+    out+=circle(298,610,r*.68,accent,false,.75);
     if(page.art==="geometry" || style.id==="sacred") for(let i=0;i<6;i++) {
       const a=i*Math.PI/3;
-      out+=line(298+r*Math.cos(a),636+r*Math.sin(a),298+r*Math.cos(a+2*Math.PI/3),636+r*Math.sin(a+2*Math.PI/3),accent,.65);
+      out+=line(298+r*Math.cos(a),610+r*Math.sin(a),298+r*Math.cos(a+2*Math.PI/3),610+r*Math.sin(a+2*Math.PI/3),accent,.65);
     }
     if(page.art==="trio") {
-      for(let i=0;i<3;i++) out+=circle(298+Math.cos(i*2*Math.PI/3)*r*.8,636+Math.sin(i*2*Math.PI/3)*r*.8,12,accent,true);
+      for(let i=0;i<3;i++) out+=circle(298+Math.cos(i*2*Math.PI/3)*r*.8,610+Math.sin(i*2*Math.PI/3)*r*.8,12,accent,true);
     }
-    if(page.art==="house")out+=txt(String((page.payload?.index||0)+1).padStart(2,"0"),280,630,28,accent,"F2");
-    if(page.art==="planet") out+=txt(page.payload?.body?.body?.toUpperCase()||"PLANET",257,633,13,accent,"F3");
+    if(page.art==="house")out+=txt(String((page.payload?.index||0)+1).padStart(2,"0"),280,604,28,accent,"F2");
+    if(page.art==="planet") out+=txt(page.payload?.body?.body?.toUpperCase()||"PLANET",263,606,10,accent,"F3");
     if(page.art==="journal") {
-      for(let i=0;i<5;i++)out+=line(120,705-i*31,476,705-i*31,accent,.6);
+      for(let i=0;i<5;i++)out+=line(120,655-i*20,476,655-i*20,accent,.6);
     }
   }
   return out;
 }
+
+function wheelArt(chart, accent, ink) {
+  const cx=298,cy=439, asc=chart.asc??0;
+  const point=(lon,r)=>{const a=(180-(lon-asc))*Math.PI/180;return {x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r};};
+  let out="";
+  for(const radius of [177,164,137,104,84])out+=circle(cx,cy,radius,accent,false,radius===164?1.2:.7);
+  for(let i=0;i<12;i++){
+    const p=point(i*30,137),q=point(i*30,177),textPt=point(i*30+15,151);
+    out+=line(p.x,p.y,q.x,q.y,accent,.7);
+    out+=txt(SIGNS[i].slice(0,3).toUpperCase(),textPt.x-9,textPt.y-3,8,ink,"F3");
+  }
+  if(Array.isArray(chart.cusps))for(let i=0;i<12;i++){
+    const p=point(chart.cusps[i],84),q=point(chart.cusps[i],137);
+    out+=line(p.x,p.y,q.x,q.y,accent,i%3===0?1.2:.6);
+    const center=(chart.cusps[i]+(((chart.cusps[(i+1)%12]-chart.cusps[i]+360)%360)/2))%360;
+    const label=point(center,116);
+    out+=txt(String(i+1),label.x-3,label.y-2,8,ink);
+  }
+  const known=chart.bodies||[];
+  for(const b of known){
+    const p=point(b.lon,171);
+    out+=circle(p.x,p.y,b.body==="Sun"||b.body==="Moon"?4.5:3.1,accent,true);
+  }
+  const abbreviations={Sun:"Su",Moon:"Mo",Mercury:"Me",Venus:"Ve",Mars:"Ma",Jupiter:"Ju",Saturn:"Sa",Uranus:"Ur",Neptune:"Ne",Pluto:"Pl"};
+  const sorted=[...known].sort((a,b)=>a.lon-b.lon);
+  for(let i=0;i<sorted.length;i++){
+    const b=sorted[i], prev=sorted[(i+sorted.length-1)%sorted.length], next=sorted[(i+1)%sorted.length];
+    const crowded=Math.min(Math.abs((b.lon-prev.lon+360)%360),Math.abs((next.lon-b.lon+360)%360))<10;
+    const p=point(b.lon,crowded?130-(i%2)*18:128);
+    out+=txt(abbreviations[b.body]||b.body.slice(0,2),p.x-6,p.y-2,8,ink,"F3");
+  }
+  const angles=(chart.bodies||[]);
+  const measured=[];for(let i=0;i<angles.length;i++)for(let j=i+1;j<angles.length;j++){
+    const a=angles[i],b=angles[j];
+    const d=Math.abs(((a.lon-b.lon+540)%360)-180);
+    for(const target of [0,60,90,120,180])if(Math.abs(d-target)<=3){measured.push([a,b]);break;}
+  }
+  for(const [a,b] of measured.slice(0,16)){
+    const p=point(a.lon,82),q=point(b.lon,82);
+    out+=line(p.x,p.y,q.x,q.y,accent,.55);
+  }
+  out+=circle(cx,cy,20,accent,false,1.2);
+  out+=txt("AEON",cx-16,cy-3,9,ink,"F3");
+  return out;
+}
+
 function drawPage(doc, page, index, total) {
   const style=doc.style, [bg,accent,ink]=style.colors;
   let out=rect(0,0,595,842,bg);
@@ -376,7 +426,19 @@ function drawPage(doc, page, index, total) {
   out+=txt("AEON",54,805,14,["insight","codex","mono"].includes(style.id)?bg:accent,"F3");
   out+=txt("YOUR SKY. YOUR PERSPECTIVE.",365,807,8,["insight","codex","mono"].includes(style.id)?bg:ink);
   out+=line(54,770,541,770,accent,.85);
-  if(page.art==="cover") {
+  if(page.art==="wheel") {
+    out+=txt(page.kicker,54,742,9,accent,"F3");
+    out+=txt(page.title,54,713,25,ink,"F2");
+    out+=para(page.subtitle,54,688,485,ink,10,13).output;
+    out+=wheelArt(page.payload?.chart||doc.chart,accent,ink);
+    out+=line(54,234,541,234,accent,.75);
+    let y=216;
+    for(const b of page.blocks) {
+      out+=txt(b.label,54,y,9,accent,"F3");y-=16;
+      const p=para(b.text,54,y,485,ink,9.7,14);
+      out+=p.output;y=p.y-8;
+    }
+  } else if(page.art==="cover") {
     out+=art(style,page,doc.chart);
     out+=txt("ILLUSTRATED PERSONAL DOSSIER",54,709,9,accent,"F3");
     out+=txt(doc.type.label,54,269,29,ink,"F2");
