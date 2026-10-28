@@ -1,3 +1,4 @@
+// @ts-nocheck
 import test from "node:test";
 import assert from "node:assert/strict";
 import { REPORT_STYLES, REPORT_TYPES, buildReportPages, createReportPdf } from "./report-studio.js";
