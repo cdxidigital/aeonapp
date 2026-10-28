@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Today · AEON",
+      "hasCanvas": false,
+      "bodyTextLen": 1831,
+      "bodyTextHash": "c72d92d8f262073797287045ac41cfd5ccf067caa32d8f74121417b68e41ae98",
+      "bodyTextPrefix": "Skip to content aeon✳ A LITTLE PERSPECTIVE. Today Your chart Con",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/fluid-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Today · AEON",
+      "hasCanvas": false,
+      "bodyTextLen": 1588,
+      "bodyTextHash": "5343cd7a024abf0d9cc92f6742afc1b6b3b03bc5765cf58d2fe85439998c0904",
+      "bodyTextPrefix": "Skip to content Today Your chart Connections Almanac Journal aeo",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/fluid-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/fluid-built.json",
+  "divergesFromBaseline": false,
+  "baselineReasons": []
+}
