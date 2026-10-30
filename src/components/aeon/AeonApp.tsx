@@ -6,6 +6,7 @@ import { Store } from "@/lib/aeon/store.js";
 import { UI } from "@/lib/aeon/visuals.js";
 import { Icon, KindPill, Modal, ProfileForm, Svg, ZoneField, download, hash, uid } from "./bits";
 import { ReportStudio } from "./ReportStudio";
+import { encryptBackup, decryptBackup, isEncryptedBackup } from "@/lib/aeon/secure-backup.js";
 
 const PAGES = ["today", "chart", "connections", "almanac", "readings", "journal"] as const;
 type Page = (typeof PAGES)[number];
@@ -97,6 +98,9 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
   const [modal, setModal] = useState<any>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [systemDark, setSystemDark] = useState(false);
+  const [backupPassphrase, setBackupPassphrase] = useState("");
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [backupError, setBackupError] = useState("");
   const pending = useRef<null | (() => void)>(null);
   const toastTimer = useRef<number | undefined>(undefined);
 
@@ -128,6 +132,8 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
 
   function closeModal() {
     pending.current = null;
+    setBackupPassphrase("");
+    setBackupError("");
     setModal(null);
   }
 
@@ -1338,31 +1344,77 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
             Your birth details, {state.people.length} saved chart{state.people.length === 1 ? "" : "s"}, {state.entries.length} reflection
             {state.entries.length === 1 ? "" : "s"} and {state.bookmarks.length} reading{state.bookmarks.length === 1 ? "" : "s"} are saved in this browser. Export before clearing browser data or moving devices.
           </p>
+          <div className="backup-protect">
+            <h4>Encrypted backup (recommended)</h4>
+            <p className="modal-copy" id="backup-help">Protect exported birth details and reflections with a passphrase of at least 12 characters. AEON cannot recover a lost passphrase. Keep it somewhere safe.</p>
+            <div className="field">
+              <label htmlFor="backup-passphrase">Backup passphrase</label>
+              <input
+                id="backup-passphrase"
+                type="password"
+                autoComplete="off"
+                value={backupPassphrase}
+                onChange={(event) => { setBackupPassphrase(event.target.value); setBackupError(""); }}
+                aria-describedby="backup-help"
+                disabled={backupBusy}
+                placeholder="Enter a unique passphrase"
+              />
+            </div>
+            <div className="settings-actions">
+              <button
+                className="button"
+                type="button"
+                disabled={backupBusy}
+                onClick={async () => {
+                  setBackupError("");
+                  setBackupBusy(true);
+                  try {
+                    const locked = await encryptBackup(Store.backup(state), backupPassphrase);
+                    download(JSON.stringify(locked, null, 2), "application/json", "AEON-encrypted-backup-" + Astro.dateKey(new Date()) + ".aeon");
+                    setBackupPassphrase("");
+                    toast("Encrypted backup downloaded. Keep your passphrase separately.");
+                  } catch (error) {
+                    setBackupError(error instanceof Error ? error.message : "Unable to create the encrypted backup.");
+                  } finally {
+                    setBackupBusy(false);
+                  }
+                }}
+              >
+                <Icon name="lock" /> {backupBusy ? "Working..." : "Download encrypted backup"}
+              </button>
+            </div>
+            {backupError && <p className="form-error" role="alert">{backupError}</p>}
+          </div>
           <div className="settings-actions" style={{ marginTop: 18 }}>
             <button
               className="button secondary"
               type="button"
               onClick={() => {
                 download(Store.backup(state), "application/json", `AEON-backup-${Astro.dateKey(new Date())}.json`);
-                toast("Your private backup is ready.");
+                toast("Unencrypted JSON downloaded. It contains private data.");
               }}
             >
-              <Icon name="download" /> Export your data
+              <Icon name="download" /> Export unencrypted JSON
             </button>
             <label className="button secondary import-label" htmlFor="import-data">
               Import a backup
               <input
                 type="file"
                 id="import-data"
-                accept="application/json,.json"
+                accept="application/json,.json,.aeon"
                 className="sr-only"
                 onChange={async (event) => {
                   const file = event.target.files?.[0];
                   event.target.value = "";
                   if (!file) return;
                   try {
-                    if (file.size > 25 * 1024 * 1024) throw Error("Choose an AEON JSON backup smaller than 25 MB.");
-                    const data = Store.normalize(JSON.parse(await file.text()));
+                    if (file.size > 25 * 1024 * 1024) throw Error("Choose an AEON backup smaller than 25 MB.");
+                    setBackupBusy(true);
+                    setBackupError("");
+                    const fileData = JSON.parse(await file.text());
+                    const decoded = isEncryptedBackup(fileData) ? JSON.parse(await decryptBackup(fileData, backupPassphrase)) : fileData;
+                    const data = Store.normalize(decoded);
+                    setBackupPassphrase("");
                     confirm(
                       "Bring your moments back?",
                       `This backup will replace the AEON data in this browser with ${data.people.length} saved charts, ${data.entries.length} reflections and ${data.bookmarks.length} readings. Export your current data first if you want to keep it.`,
@@ -1383,13 +1435,15 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
                       { type: "settings" },
                     );
                   } catch (error) {
-                    toast(error instanceof SyntaxError ? "That file is not valid JSON. Choose an AEON backup." : error instanceof Error ? error.message : "That backup could not be read.");
+                    setBackupError(error instanceof SyntaxError ? "That file is not valid JSON. Choose an AEON backup." : error instanceof Error ? error.message : "That backup could not be read.");
+                  } finally {
+                    setBackupBusy(false);
                   }
                 }}
               />
             </label>
           </div>
-          <p className="calculation-note">Backups contain your private birth details and words. Store them somewhere you trust.</p>
+          <p className="calculation-note">Import accepts encrypted .aeon files and existing .json backups. Enter the passphrase above when importing an encrypted file. Local browser storage itself is not encrypted, and AEON has no cloud recovery account yet.</p>
         </div>
         <div className="settings-section">
           <h3>A fresh beginning</h3>

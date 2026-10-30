@@ -1,7 +1,7 @@
 // @ts-nocheck
 import test from "node:test";
 import assert from "node:assert/strict";
-import { REPORT_STYLES, REPORT_TYPES, buildReportPages, createReportPdf } from "./report-studio.js";
+import { REPORT_STYLES, REPORT_TYPES, buildReportPages, createReportPdf, paginateDossier } from "./report-studio.js";
 
 const names = ["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"];
 function fixture(precision = "exact") {
@@ -95,4 +95,33 @@ test("all six art directions produce a PDF without changing calculated data",()=
 test("unknown types and styles cannot silently select a substitute",()=>{
   assert.throws(()=>buildReportPages({...fixture(),type:"medical-diagnosis"}),/supported/);
   assert.throws(()=>buildReportPages({...fixture(),style:"other"}),/supported/);
+});
+
+
+test("PDF pagination preserves every word instead of truncating long chapters", () => {
+  const baseline = buildReportPages(fixture());
+  const paragraph = Array.from({length: 950}, (_, i) => "journalword" + (i % 7)).join(" ");
+  const expanded = paginateDossier({ ...baseline, pages: [{
+    kicker: "QA / OVERFLOW", title: "A very long chapter", subtitle: "A regression fixture.",
+    blocks: [{label: "LONG SECTION", text: paragraph}], art: "reflection", payload: null
+  }] });
+  assert.ok(expanded.pages.length >= 3, "long editorial text must create continuation pages");
+  assert.equal(expanded.pages[0].title, "A very long chapter");
+  assert.match(expanded.pages[1].title, /continued/);
+  const content = expanded.pages.flatMap(page => page.blocks.map(block => block.text)).join(" ");
+  assert.equal(content.replace(/\s+/g, " ").trim(), paragraph);
+  assert.ok(expanded.pages.every(page => page.blocks.length > 0));
+});
+
+test("pagination handles long cover text and chart wheel annotations without loss", () => {
+  const baseline = buildReportPages(fixture());
+  for (const art of ["cover", "wheel"]) {
+    const paragraph = "astronomical context ".repeat(160).trim();
+    const paginated = paginateDossier({ ...baseline, pages: [{
+      kicker: "QA", title: "Overflow", subtitle: "Test long chart note", art,
+      blocks: [{label: "DETAIL", text: paragraph}], payload: {chart: baseline.chart}
+    }] });
+    assert.ok(paginated.pages.length > 1, art + " should overflow onto another page");
+    assert.equal(paginated.pages.flatMap(p => p.blocks.map(b => b.text)).join(" ").replace(/\s+/g," ").trim(), paragraph);
+  }
 });
