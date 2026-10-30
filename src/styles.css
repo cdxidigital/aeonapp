@@ -162,3 +162,11 @@ body{overflow-x:clip}
 @media(max-width:760px){.studio-type-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.studio-preview-area{padding:15px}.studio-type{min-height:167px;padding:15px}.studio-type strong{font-size:20px}.studio-styles{gap:8px}.studio-style{padding:7px}.studio-style-art{min-height:90px}.studio-style-orbit{width:55px;height:55px;font-size:27px}.studio-style-label{font-size:11px}.studio-preview-details strong{font-size:21px}.studio-preview-cover{min-height:390px}}
 @media(max-width:450px){.studio-type-grid{grid-template-columns:1fr}.studio-type{min-height:auto}.studio-styles{grid-template-columns:repeat(2,minmax(0,1fr))}.studio-preview-details span{font-size:9px}.studio-preview-cover{min-height:350px}}
 @media(prefers-reduced-motion:reduce){.studio-type:hover,.studio-style:hover{transform:none}}
+
+/* AEON encrypted export: compact, keyboard-accessible controls on all screen sizes. */
+.backup-protect{background:var(--sage);border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:20px}
+.backup-protect h4{margin:0 0 8px;font-family:var(--serif);font-size:21px;font-weight:400}
+.backup-protect .field{margin-top:16px;margin-bottom:14px}
+.backup-protect .field input{background:var(--surface);color:var(--ink)}
+.backup-protect .form-error{margin-top:14px}
+@media(max-width:420px){.backup-protect{padding:15px}.backup-protect .button{width:100%}}
