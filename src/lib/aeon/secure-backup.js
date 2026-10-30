@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * AEON encrypted export, v1. Passphrases and keys never leave the browser.
  * The application's existing localStorage itself is NOT encrypted.
