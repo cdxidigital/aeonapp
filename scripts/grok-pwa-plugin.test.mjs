@@ -6,9 +6,9 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
   appNameFromHost,
-  createHeadInjector,
+  createHeadInjector as createHeadInjectorSource,
   grokXCreatorHeadTags,
-  injectGrokPwaHead,
+  injectGrokPwaHead as injectGrokPwaHeadSource,
   isDocumentPath,
   isInstallQuery,
   publicAppHost,
@@ -20,6 +20,15 @@ import {
 import { renderInstallPage } from "./grok-pwa-plugin.mjs";
 
 const TEMPLATE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+// Isolate generic middleware tests from AEON's real src/lib/og/site.json and public/og.jpg.
+// Explicit fixture cwd values still take precedence.
+const FIXTURE_CWD = mkdtempSync(join(tmpdir(), "aeon-pwa-test-isolated-"));
+function injectGrokPwaHead(html, context = {}) {
+  return injectGrokPwaHeadSource(html, { cwd: FIXTURE_CWD, ...context });
+}
+function createHeadInjector(context = {}) {
+  return createHeadInjectorSource({ cwd: FIXTURE_CWD, ...context });
+}
 
 test("injects before </head>", () => {
   const out = injectGrokPwaHead("<html><head><title>x</title></head><body></body></html>");
