@@ -419,6 +419,59 @@ function wheelArt(chart, accent, ink) {
   return out;
 }
 
+// Keep long reports readable: never silently drop a paragraph at the footer.
+// The core editorial chapters are kept intact unless a page would overflow.
+function pageLayout(artName) {
+  if (artName === "cover") return { start: 237, title: 15, leading: 15, gap: 10, chars: Math.floor(485 / (10.5 * .515)) };
+  if (artName === "wheel") return { start: 216, title: 16, leading: 14, gap: 8, chars: Math.floor(485 / (9.7 * .515)) };
+  return { start: 506, title: 20, leading: 15.2, gap: 12, chars: Math.floor(483 / (10 * .515)) };
+}
+export function paginateDossier(doc) {
+  const pages = [];
+  for (const source of doc.pages) {
+    let current = { ...source, blocks: [] };
+    let layout = pageLayout(current.art), y = layout.start;
+    function continuation() {
+      pages.push(current);
+      if (pages.length > 200) throw Error("The dossier exceeds the PDF page limit.");
+      current = { ...source, art: "continuation", title: source.title + " (continued)",
+        subtitle: "Further detail, preserved from the preceding page.", payload: null, blocks: [] };
+      layout = pageLayout(current.art);
+      y = layout.start;
+    }
+    for (const entry of source.blocks) {
+      let lines = wrap(entry.text, layout.chars);
+      let cursor = 0;
+      if (lines.length === 0) {
+        if (y - layout.title - layout.gap < 96) continuation();
+        current.blocks.push({ ...entry, text: "" });
+        y -= layout.title + layout.gap;
+        continue;
+      }
+      while (cursor < lines.length) {
+        const capacity = Math.floor((y - layout.title - layout.gap - 96) / layout.leading);
+        if (capacity < 1) { continuation(); lines = wrap(entry.text, layout.chars); cursor = 0; }
+        const allowed = Math.floor((y - layout.title - layout.gap - 96) / layout.leading);
+        const next = Math.min(lines.length - cursor, allowed);
+        if (next < 1) throw Error("PDF layout cannot fit a paragraph.");
+        current.blocks.push({ ...entry,
+          label: cursor ? entry.label + " (CONTINUED)" : entry.label,
+          text: lines.slice(cursor, cursor + next).join(" ") });
+        y -= layout.title + next * layout.leading + layout.gap;
+        cursor += next;
+        if (cursor < lines.length) {
+          const remaining = lines.slice(cursor).join(" ");
+          continuation();
+          lines = wrap(remaining, layout.chars);
+          cursor = 0;
+        }
+      }
+    }
+    pages.push(current);
+  }
+  return { ...doc, pages };
+}
+
 function drawPage(doc, page, index, total) {
   const style=doc.style, [bg,accent,ink]=style.colors;
   let out=rect(0,0,595,842,bg);
@@ -453,7 +506,7 @@ function drawPage(doc, page, index, total) {
     out+=line(54,527,541,527,accent,.7);
     let y=506;
     for(const b of page.blocks) {
-      if(y<94)break;
+      if(y<96) throw Error("PDF content overlaps the footer.");
       out+=txt(b.label,54,y,9,accent,"F3");y-=20;
       const t=para(b.text,54,y,483,ink,10,15.2);out+=t.output;y=t.y-12;
     }
@@ -482,7 +535,7 @@ function pdfObjects(doc) {
   return objects;
 }
 export function createReportPdf(options) {
-  const doc=buildReportPages(options);
+  const doc=paginateDossier(buildReportPages(options));
   const objects=pdfObjects(doc);
   const encoder=new TextEncoder();
   let data="%PDF-1.4\n%AEON\n";
