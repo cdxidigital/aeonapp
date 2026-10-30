@@ -151,6 +151,7 @@ export function ProfileForm({
   cityStatus,
   onSave,
   onClose,
+  closeLabel = "Keep exploring",
 }: {
   kind: "owner" | "person";
   existing: any;
@@ -158,6 +159,7 @@ export function ProfileForm({
   cityStatus: "loading" | "ready" | "error";
   onSave: (profile: any) => void;
   onClose: () => void;
+  closeLabel?: string;
 }) {
   const precision0 = existing?.precision || "unknown";
   const [precision, setPrecision] = useState(precision0);
@@ -434,7 +436,7 @@ export function ProfileForm({
             {existing ? "Update chart" : "Create the chart"} <Icon name="arrow" />
           </button>
           <button className="text-button" type="button" onClick={onClose}>
-            Keep exploring
+            {closeLabel}
           </button>
         </div>
         <p className="calculation-note">

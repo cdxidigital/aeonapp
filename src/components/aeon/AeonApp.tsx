@@ -20,6 +20,38 @@ const NAV: [Page, string, string][] = [
   ["journal", "journal", "Journal"],
 ];
 
+const ONBOARD = [
+  {
+    kicker: "1 of 4",
+    title: "You can learn this without already knowing it.",
+    body: "By the end you will be able to name three ideas. A planet is the topic. A sign is the style. A house is the area of life.",
+  },
+  {
+    kicker: "2 of 4",
+    title: "A planet is the topic.",
+    body: "The Moon, for example, is mood and what helps you feel safe. It is not a mood you are required to stay in.",
+  },
+  {
+    kicker: "3 of 4",
+    title: "A sign is the style. A house is the area of life.",
+    body: "An empty house is not a missing part of your life. It only means no planet landed there. If the birth time is unknown, houses stay hidden rather than guessed.",
+  },
+  {
+    kicker: "4 of 4",
+    title: "This stays on this device.",
+    body: "The first chart is a labeled sample, not yours. Add your own birth details when you want. Next, read one card on Today.",
+  },
+];
+
+const LESSONS: { page: Page; title: string; plain: string; full: string }[] = [
+  { page: "today", title: "Today is one day of sky.", plain: "This page is the date, a few calculated movements, and a reading in ordinary words.", full: "The positions are a calculation. The sentences after them are a tradition. They are labeled so you can tell them apart." },
+  { page: "chart", title: "Your chart is the wheel.", plain: "Open Your chart and tap a planet. You will see the topic, the style, and the area of life.", full: "The wheel and the table use the same positions. If they ever disagree, trust the degrees in the table." },
+  { page: "chart", title: "Try one placement.", plain: "Tap the Sun, or any row in the table. Read the first sentence, then decide if it fits. You can ignore it.", full: "A degree is a measurement. A paragraph is an interpretation. You can keep one and set the other aside." },
+  { page: "today", title: "A reading is a theme, not an order.", plain: "Flow, Focus, and Friction are tones for reflection. They are not events that will happen to you.", full: "Nothing here diagnoses an illness, forecasts a death, or decides a relationship." },
+  { page: "journal", title: "Your words stay yours.", plain: "The journal is for what you noticed. A sample chart is marked as a sample until you replace it.", full: "Notes stay in this browser. Export a backup from Settings if you want a copy." },
+  { page: "today", title: "You know enough to look around.", plain: "Settings can replay this tutorial, change the voice, or turn these cards off.", full: "A fuller explanation is optional. The short version is enough to begin." },
+];
+
 function houseName(house: string) {
   return { porphyry: "Porphyry", whole: "Whole Sign", equal: "Equal" }[house] || house;
 }
@@ -101,6 +133,9 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
   const [backupPassphrase, setBackupPassphrase] = useState("");
   const [backupBusy, setBackupBusy] = useState(false);
   const [backupError, setBackupError] = useState("");
+  const [gate, setGate] = useState<null | "load" | "landing" | "profile" | "onboard">(null);
+  const [step, setStep] = useState(0);
+  const [lessonOpen, setLessonOpen] = useState(false);
   const pending = useRef<null | (() => void)>(null);
   const toastTimer = useRef<number | undefined>(undefined);
 
@@ -167,6 +202,8 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
     setDay(today);
     setMonth(today.slice(0, 7));
     setSystemDark(!!window.matchMedia?.("(prefers-color-scheme: dark)").matches);
+    setGate(loaded.state.prefs.visit === "new" ? "load" : null);
+    setLessonOpen(loaded.state.prefs.visit !== "new" && loaded.state.prefs.hints && loaded.state.prefs.lesson < 6);
     setBooted(true);
   }, []);
 
@@ -174,6 +211,13 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
     if (!booted) return;
     applyTheme(state.prefs.theme);
   }, [state.prefs.theme, systemDark, booted]);
+
+  useEffect(() => {
+    if (gate !== "load") return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const timer = window.setTimeout(() => setGate((current) => (current === "load" ? "landing" : current)), reduce ? 280 : 3400);
+    return () => window.clearTimeout(timer);
+  }, [gate]);
 
   useEffect(() => {
     const media = window.matchMedia?.("(prefers-color-scheme: dark)");
@@ -262,10 +306,78 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
     commit({ ...state, prefs: { ...state.prefs, ...partial } });
   }
 
-  const appearance: "light" | "dark" = state.prefs.theme === "dark" || (state.prefs.theme === "system" && systemDark) ? "dark" : "light";
+  function settleVisit(partial: any) {
+    updatePrefs({ visit: "returning", ...partial });
+    setGate(null);
+  }
 
-  function toggleTheme() {
-    updatePrefs({ theme: appearance === "dark" ? "light" : "dark" });
+  function alreadyHere() {
+    settleVisit({ onboard: "skipped", lesson: 6 });
+    setLessonOpen(false);
+  }
+
+  function skipTour() {
+    settleVisit({ onboard: "skipped", lesson: 0, hints: true });
+    setLessonOpen(true);
+    setPage("today");
+  }
+
+  function finishTour() {
+    settleVisit({ onboard: "done", lesson: 0, hints: true });
+    setLessonOpen(true);
+    setPage("today");
+  }
+
+  function showLesson(index = 0) {
+    const beat = LESSONS[index] || LESSONS[0];
+    updatePrefs({ visit: "returning", hints: true, lesson: index });
+    setGate(null);
+    setLessonOpen(true);
+    setPage(beat.page);
+    closeModal();
+  }
+
+  function advanceLesson() {
+    const next = (state.prefs.lesson || 0) + 1;
+    if (next >= LESSONS.length) {
+      updatePrefs({ lesson: 6 });
+      setLessonOpen(false);
+      return;
+    }
+    updatePrefs({ lesson: next });
+    setPage(LESSONS[next].page);
+  }
+
+  function themeSwitch() {
+    const options = [
+      ["light", "Paper"],
+      ["dark", "Night"],
+      ["system", "Live"],
+    ] as const;
+    return (
+      <div className="theme-choice" role="group" aria-label="Appearance">
+        {options.map(([value, label]) => (
+          <button key={value} type="button" aria-pressed={state.prefs.theme === value} onClick={() => updatePrefs({ theme: value })}>
+            {label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  function cineSky() {
+    return (
+      <div className="cine-sky" aria-hidden="true">
+        <span className="cine-glow" />
+        <svg className="cine-wheel" viewBox="0 0 520 520">
+          <circle cx="260" cy="260" r="248" />
+          <circle cx="260" cy="260" r="196" />
+          <circle cx="260" cy="260" r="112" />
+          <path d="M260 18v484M18 260h484" />
+          <circle className="cine-core" cx="260" cy="260" r="5" />
+        </svg>
+      </div>
+    );
   }
 
   function savedId(id: string) {
@@ -309,8 +421,15 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
 
   function saveProfile(profile: any, kind: "owner" | "person") {
     if (kind === "owner") {
-      const ok = commit({ ...state, profile });
+      const first = gate === "profile" || gate === "landing";
+      const prefs = first ? { ...state.prefs, visit: "returning", onboard: "done", lesson: 0, hints: true } : state.prefs;
+      const ok = commit({ ...state, profile, prefs });
       closeModal();
+      if (first) {
+        setGate(null);
+        setLessonOpen(true);
+        setPage("today");
+      }
       toast(ok ? "Your chart is ready." : "Your chart is ready for this session. Export a backup to keep it.");
       return;
     }
@@ -366,6 +485,15 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
         <p className="greeting">
           Your day, {owner.name}. {UI.dateLabel(day, { day: "numeric", month: "long" })}.
         </p>
+        {!state.profile ? (
+          <button className="text-button learn-again" type="button" onClick={() => setGate("profile")}>
+            Create your profile
+          </button>
+        ) : (
+          <button className="text-button learn-again" type="button" onClick={() => { setStep(0); setGate("onboard"); }}>
+            New here? Start the tour
+          </button>
+        )}
         {sky.error && <div className="notice">{sky.error}</div>}
         <section className="hero" aria-label="Your daily reading">
           <div className="hero-copy">
@@ -1282,6 +1410,7 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
   }
 
   function settingsBody() {
+    const lesson = LESSONS[Math.min(state.prefs.lesson || 0, LESSONS.length - 1)];
     return (
       <>
         <div className="settings-row">
@@ -1294,35 +1423,16 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
           </button>
         </div>
         <div className="settings-section">
-          <h3>Your experience</h3>
+          <h3>Appearance</h3>
           <label className="settings-row">
             <span>
-              Reading tone
-              <small>Same sky. A different voice.</small>
+              Light or dark
+              <small>Or follow this device.</small>
             </span>
-            <select className="select-quiet" value={state.prefs.tone} onChange={(event) => updatePrefs({ tone: event.target.value })}>
-              <option value="gentle">Gentle</option>
-              <option value="direct">Direct</option>
-              <option value="playful">Playful</option>
-            </select>
-          </label>
-          <label className="settings-row">
-            <span>Appearance</span>
             <select className="select-quiet" value={state.prefs.theme} onChange={(event) => updatePrefs({ theme: event.target.value })}>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-              <option value="system">Follow device</option>
-            </select>
-          </label>
-          <label className="settings-row">
-            <span>
-              House system
-              <small>Shown with every chart.</small>
-            </span>
-            <select className="select-quiet" value={state.prefs.house} onChange={(event) => updatePrefs({ house: event.target.value })}>
-              <option value="porphyry">Porphyry</option>
-              <option value="whole">Whole Sign</option>
-              <option value="equal">Equal</option>
+              <option value="light">Paper</option>
+              <option value="dark">Night</option>
+              <option value="system">Live, follow this device</option>
             </select>
           </label>
           <ZoneField
@@ -1339,10 +1449,68 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
           />
         </div>
         <div className="settings-section">
-          <h3>Keep a copy. Keep control.</h3>
+          <h3>Learning</h3>
+          <p className="modal-copy">Same sky. Choose how much explanation you want. You can replay the lesson any time.</p>
+          <label className="settings-row">
+            <span>
+              Reading voice
+              <small>Gentle, direct, or playful.</small>
+            </span>
+            <select className="select-quiet" value={state.prefs.tone} onChange={(event) => updatePrefs({ tone: event.target.value })}>
+              <option value="gentle">Gentle</option>
+              <option value="direct">Direct</option>
+              <option value="playful">Playful</option>
+            </select>
+          </label>
+          <label className="settings-row">
+            <span>
+              How much to explain
+              <small>Plain is enough to begin. Fuller adds the limit of each idea.</small>
+            </span>
+            <select className="select-quiet" value={state.prefs.depth === "full" ? "full" : "plain"} onChange={(event) => updatePrefs({ depth: event.target.value })}>
+              <option value="plain">Plain</option>
+              <option value="full">Fuller</option>
+            </select>
+          </label>
+          <label className="settings-row">
+            <span>
+              House system
+              <small>A house is the area of life. The system is the method used to draw the edges.</small>
+            </span>
+            <select className="select-quiet" value={state.prefs.house} onChange={(event) => updatePrefs({ house: event.target.value })}>
+              <option value="porphyry">Porphyry</option>
+              <option value="whole">Whole Sign</option>
+              <option value="equal">Equal</option>
+            </select>
+          </label>
+          <label className="check-label">
+            <input
+              type="checkbox"
+              checked={state.prefs.hints !== false}
+              onChange={(event) => {
+                const hints = event.target.checked;
+                updatePrefs({ hints });
+                setLessonOpen(hints && state.prefs.lesson < 6);
+              }}
+            />
+            <span>Show the tutorial again when I come back, until I finish it.</span>
+          </label>
+          <div className="settings-actions">
+            <button className="button secondary" type="button" onClick={() => showLesson(0)}>
+              Replay the tutorial
+            </button>
+            {state.prefs.lesson > 0 && state.prefs.lesson < 6 && (
+              <button className="text-button" type="button" onClick={() => showLesson(state.prefs.lesson)}>
+                Resume: {lesson.title}
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="settings-section">
+          <h3>Privacy</h3>
           <p className="modal-copy">
             Your birth details, {state.people.length} saved chart{state.people.length === 1 ? "" : "s"}, {state.entries.length} reflection
-            {state.entries.length === 1 ? "" : "s"} and {state.bookmarks.length} reading{state.bookmarks.length === 1 ? "" : "s"} are saved in this browser. Export before clearing browser data or moving devices.
+            {state.entries.length === 1 ? "" : "s"} and {state.bookmarks.length} reading{state.bookmarks.length === 1 ? "" : "s"} stay in this browser. Nothing is sent to an account. Export a copy before you clear this browser or move devices.
           </p>
           <div className="backup-protect">
             <h4>Encrypted backup (recommended)</h4>
@@ -1429,6 +1597,8 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
                         setEdits({});
                         setDay(today);
                         setMonth(today.slice(0, 7));
+                        setGate(data.prefs.visit === "new" ? "load" : null);
+                        setLessonOpen(data.prefs.visit !== "new" && data.prefs.hints && data.prefs.lesson < 6);
                         navigate("today");
                         toast(ok ? "Your moments are back." : "Backup opened for this session. Browser storage is unavailable.");
                       },
@@ -1446,16 +1616,19 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
           <p className="calculation-note">Import accepts encrypted .aeon files and existing .json backups. Enter the passphrase above when importing an encrypted file. Local browser storage itself is not encrypted, and AEON has no cloud recovery account yet.</p>
         </div>
         <div className="settings-section">
-          <h3>A fresh beginning</h3>
-          <p className="modal-copy">Remove all AEON data from this browser. Export a backup first if you want to keep anything.</p>
+          <h3>About</h3>
+          <p className="modal-copy">AEON is developed by fourtee2apps. It teaches a chart in plain language. It is not medical advice, and it does not decide your life.</p>
           <div className="settings-actions" style={{ marginTop: 18 }}>
+            <button className="button secondary" type="button" onClick={() => setModal({ type: "about" })}>
+              How AEON works
+            </button>
             <button
               className="button secondary"
               type="button"
               onClick={() =>
                 confirm(
                   "A fresh beginning?",
-                  "This removes your profile, saved charts, readings, preferences and reflections from this browser. Export first if you want a copy.",
+                  "This removes your profile, saved charts, readings, preferences and reflections from this browser. Export first if you want a copy. You will see the welcome page again.",
                   () => {
                     try {
                       localStorage.removeItem(Store.KEY);
@@ -1476,17 +1649,18 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
                     const today = Astro.dateKey(new Date(), fresh.prefs.zone);
                     setDay(today);
                     setMonth(today.slice(0, 7));
-                    navigate("today");
+                    setStep(0);
+                    setLessonOpen(false);
+                    setGate("load");
+                    setModal(null);
+                    setPage("today");
                     toast("Your local data has been removed.");
                   },
                   { type: "settings" },
                 )
               }
             >
-              Delete local data
-            </button>
-            <button className="text-button" type="button" onClick={() => setModal({ type: "about" })}>
-              How AEON works ↗
+              Start over on this device
             </button>
           </div>
         </div>
@@ -1587,6 +1761,7 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
       <Modal sheet title={`${Astro.SYMBOLS[body]} ${body} in ${placement.signs.map((index: number) => Astro.SIGNS[index]).join(" / ")}`} eyebrow="YOUR CHART, A LITTLE DEEPER" onClose={closeModal}>
         <div className="modal-copy">
           <p>{meaning.text}</p>
+          {state.prefs.depth === "full" && <p>That sentence is a traditional reading. The degrees below are the calculation. You can keep one and set the other aside.</p>}
           {placement.signs.map((sign: number) => (
             <div key={sign}>
               <h3>
@@ -1698,15 +1873,7 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
             ) : (
               <span className="sample-chip">On your device</span>
             )}
-            <button
-              className="theme-toggle"
-              type="button"
-              aria-pressed={appearance === "dark"}
-              aria-label={appearance === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              onClick={toggleTheme}
-            >
-              <Icon name={appearance === "dark" ? "today" : "night"} />
-            </button>
+            {themeSwitch()}
             <button className="profile-button" type="button" aria-label="Profile and settings" onClick={() => setModal({ type: "settings" })}>
               <span className="avatar">{owner.name[0].toUpperCase()}</span>
               <span>{owner.name}</span>
@@ -1755,6 +1922,117 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
       <div id="toast" className={`toast${toastMsg ? " show" : ""}`} role="status" aria-live="polite">
         {toastMsg}
       </div>
+      {gate === "load" && (
+        <div className="cine" role="dialog" aria-modal="true" aria-label="Opening AEON">
+          {cineSky()}
+          <div className="cine-copy">
+            {themeSwitch()}
+            <p className="wordmark cine-mark">
+              aeon<span>✳</span>
+            </p>
+            <p className="cine-tag">Your sky. Your perspective.</p>
+            <div className="cine-bar" aria-hidden="true">
+              <span />
+            </div>
+            <button className="text-button cine-skip" type="button" onClick={() => setGate("landing")}>
+              Skip
+            </button>
+          </div>
+        </div>
+      )}
+      {gate === "landing" && (
+        <div className="cine cine-land" role="dialog" aria-modal="true" aria-labelledby="learn-title">
+          {cineSky()}
+          <div className="cine-copy">
+            {themeSwitch()}
+            <p className="eyebrow">A little perspective</p>
+            <h1 id="learn-title">Your sky, in plain language.</h1>
+            <p className="learn-promise">A planet is the topic. A sign is the style. A house is the area of life. The first step is your own chart.</p>
+            <div className="learn-actions">
+              <button className="button" type="button" onClick={() => setGate("profile")}>
+                Begin your chart
+              </button>
+              <button className="text-button" type="button" onClick={alreadyHere}>
+                Look at a sample
+              </button>
+            </div>
+            <p className="learn-credit">Developed by fourtee2apps. Paper, Night, and Live restyle this screen as you choose.</p>
+          </div>
+        </div>
+      )}
+      {gate === "profile" && (
+        <div className="learn-gate profile-gate" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+          <div className="learn-panel">
+            <div className="profile-top">
+              {themeSwitch()}
+            </div>
+            <p className="eyebrow">Your chart</p>
+            <h1 id="profile-title">Start with your own sky.</h1>
+            <p className="learn-promise">A name, a birth date, and a place are enough. If you know the time, the rising sign and houses can be calculated. If you do not, those stay blank rather than guessed.</p>
+            <ProfileForm
+              kind="owner"
+              existing={null}
+              cities={cities}
+              cityStatus={cityStatus}
+              closeLabel="Look at a sample instead"
+              onClose={alreadyHere}
+              onSave={(profile) => saveProfile(profile, "owner")}
+            />
+            <p className="learn-credit">Calculated on this device. Nothing is sent to an account. Developed by fourtee2apps.</p>
+          </div>
+        </div>
+      )}
+      {gate === "onboard" && (
+        <div className="learn-gate" role="dialog" aria-modal="true" aria-labelledby="onboard-title">
+          <div className="learn-panel">
+            <p className="eyebrow">{ONBOARD[step].kicker}</p>
+            <h1 id="onboard-title">{ONBOARD[step].title}</h1>
+            <p className="learn-promise">{ONBOARD[step].body}</p>
+            <div className="learn-progress" aria-hidden="true">
+              {ONBOARD.map((item, index) => (
+                <span key={item.kicker} className={index <= step ? "on" : ""} />
+              ))}
+            </div>
+            <div className="learn-actions">
+              {step < ONBOARD.length - 1 ? (
+                <button className="button" type="button" onClick={() => setStep(step + 1)}>
+                  Next
+                </button>
+              ) : (
+                <button className="button" type="button" onClick={finishTour}>
+                  Go to Today
+                </button>
+              )}
+              <button className="text-button" type="button" onClick={skipTour}>
+                Skip for now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {lessonOpen && state.prefs.hints !== false && state.prefs.lesson < LESSONS.length && gate == null && (
+        <aside className="lesson-card" aria-label="Tutorial">
+          <p className="eyebrow">
+            Lesson {(state.prefs.lesson || 0) + 1} of {LESSONS.length}
+          </p>
+          <h2>{LESSONS[state.prefs.lesson || 0].title}</h2>
+          <p>{LESSONS[state.prefs.lesson || 0].plain}</p>
+          {state.prefs.depth === "full" && <p>{LESSONS[state.prefs.lesson || 0].full}</p>}
+          <div className="learn-actions">
+            <button className="button" type="button" onClick={advanceLesson}>
+              {state.prefs.lesson >= LESSONS.length - 1 ? "Finish" : "Next"}
+            </button>
+            {LESSONS[state.prefs.lesson || 0].page !== page && (
+              <button className="button secondary" type="button" onClick={() => setPage(LESSONS[state.prefs.lesson || 0].page)}>
+                Show me
+              </button>
+            )}
+            <button className="text-button" type="button" onClick={() => setLessonOpen(false)}>
+              Close
+            </button>
+          </div>
+        </aside>
+      )}
       {modal?.type === "reading" && readingModal(modal.id)}
       {modal?.type === "planet" && planetModal(modal.body)}
       {modal?.type === "about" && (
