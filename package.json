@@ -20,7 +20,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "prebuild": "npm run typecheck && npm test",
-    "test:aeon": "node --test src/lib/aeon/report-studio.test.mjs src/lib/aeon/secure-backup.test.mjs"
+    "test:aeon": "node --test src/lib/aeon/report-studio.test.mjs src/lib/aeon/secure-backup.test.mjs",
+    "qa:pdf": "node scripts/qa-aeon-pdf.mjs",
+    "qa:pdf:all": "node scripts/qa-aeon-pdf.mjs --all"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",
