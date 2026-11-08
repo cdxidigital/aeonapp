@@ -5,7 +5,7 @@
   "project_id": "aeonapp",
   "release": "Beta 0.9 - local-first private web beta",
   "mode": "Extended",
-  "updated_at": "2026-11-08T09:17:00+08:00",
+  "updated_at": "2026-11-08T09:23:21.042+08:00",
   "readiness": "building",
   "source": {
     "type": "github",
@@ -13,7 +13,7 @@
     "baseline_revision": "a775d9deab8d3119a716417de01da8a2aceeacbf",
     "default_branch": "main"
   },
-  "revision": "feat/aeon-project-build-standard (base main@a775d9d)",
+  "revision": "feat/aeon-project-build-standard (review PR #7; base main@a775d9d)",
   "stages": [
     {
       "id": 1,
@@ -417,7 +417,7 @@
       "title": "GitHub Actions quality job fails without visible steps",
       "owner": "Repository Actions administrator",
       "resolution": "Inspect Actions permissions, hosted-runner allocation and job diagnostic logs; rerun Test/typecheck/compile and attach successful job steps.",
-      "evidence": "https://github.com/cdxidigital/aeonapp/actions/runs/41041692581"
+      "evidence": "https://github.com/cdxidigital/aeonapp/actions/runs/42434005074; job steps null (also main run 41041692581)"
     },
     {
       "id": "B02",
@@ -500,6 +500,11 @@
       "name": "Mobile/browser PDF and backup usability",
       "result": "not_run",
       "evidence": "docs/BETA_QA_CHECKLIST.md"
+    },
+    {
+      "name": "Project Build Standard branch quality job",
+      "result": "fail",
+      "evidence": "https://github.com/cdxidigital/aeonapp/actions/runs/42434005074; job reported failure without steps"
     }
   ],
   "improvement_log": [
