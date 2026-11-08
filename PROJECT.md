@@ -47,6 +47,8 @@ Detailed acceptance criteria, evidence, blockers and task dependencies live only
 
 ## Continuation
 
+**Latest live QA check:** [PR #7 Actions run 42434005074](https://github.com/cdxidigital/aeonapp/actions/runs/42434005074) failed without job steps on the active branch; do not count it as tested. GitHub PR: [#7](https://github.com/cdxidigital/aeonapp/pull/7).
+
 **Last evidenced outcome:** Current default branch includes first-visit/onboarding, charts, report studio, browser export and encrypted backup source. The new QA script and executable instructions have been committed to the review branch. The default-branch GitHub Actions quality job failed before any steps; the apparent green run was Dependabot, not the release build.
 
 **Current task T11:** Run \`npm ci && npm run qa:pdf\` (or \`npm run qa:pdf:all\`) on an authorized checkout, inspect synthetic manifest and render the generated PDF pages. New harness: [scripts/qa-aeon-pdf.mjs](scripts/qa-aeon-pdf.mjs). Execution has **not** been verified from this connector-only session.
