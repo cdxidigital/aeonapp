@@ -1,0 +1,525 @@
+{
+  "schema_version": 1,
+  "template_version": "1.0.0",
+  "project": "AEON",
+  "project_id": "aeonapp",
+  "release": "Beta 0.9 - local-first private web beta",
+  "mode": "Extended",
+  "updated_at": "2026-11-08T09:17:00+08:00",
+  "readiness": "building",
+  "source": {
+    "type": "github",
+    "resource": "https://github.com/cdxidigital/aeonapp",
+    "baseline_revision": "a775d9deab8d3119a716417de01da8a2aceeacbf",
+    "default_branch": "main"
+  },
+  "revision": "feat/aeon-project-build-standard (base main@a775d9d)",
+  "stages": [
+    {
+      "id": 1,
+      "name": "Brief",
+      "status": "passed",
+      "evidence": [
+        "docs/LAUNCH_ROADMAP.md",
+        "PROJECT.md"
+      ],
+      "reason": ""
+    },
+    {
+      "id": 2,
+      "name": "Roadmap",
+      "status": "passed",
+      "evidence": [
+        "docs/LAUNCH_ROADMAP.md",
+        "project-state.json"
+      ],
+      "reason": ""
+    },
+    {
+      "id": 3,
+      "name": "Design",
+      "status": "passed",
+      "evidence": [
+        "src/components/aeon/AeonApp.tsx",
+        "src/components/aeon/ReportStudio.tsx",
+        "src/styles.css"
+      ],
+      "reason": ""
+    },
+    {
+      "id": 4,
+      "name": "Foundation",
+      "status": "passed",
+      "evidence": [
+        "package.json",
+        "src/lib/aeon/store.js",
+        ".github/workflows/verify.yml"
+      ],
+      "reason": ""
+    },
+    {
+      "id": 5,
+      "name": "Build",
+      "status": "pending",
+      "evidence": [],
+      "reason": ""
+    },
+    {
+      "id": 6,
+      "name": "Verify",
+      "status": "pending",
+      "evidence": [],
+      "reason": ""
+    },
+    {
+      "id": 7,
+      "name": "Release",
+      "status": "pending",
+      "evidence": [],
+      "reason": ""
+    },
+    {
+      "id": 8,
+      "name": "Handover",
+      "status": "pending",
+      "evidence": [],
+      "reason": ""
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "Freeze Beta 0.9 release brief",
+      "stage": 1,
+      "points": 2,
+      "status": "done",
+      "owner": "AEON engineering",
+      "acceptance": "Named user journeys, local-first outcome, exclusions, unknown cost/timing and no automatic cloud migration recorded.",
+      "depends_on": [],
+      "evidence": [
+        "https://github.com/cdxidigital/aeonapp/blob/main/docs/LAUNCH_ROADMAP.md",
+        "https://github.com/cdxidigital/aeonapp/blob/main/docs/DEVELOPERS.md"
+      ]
+    },
+    {
+      "id": "T02",
+      "title": "Define Now/Next/Later and stage-gated backlog",
+      "stage": 2,
+      "points": 2,
+      "status": "done",
+      "owner": "AEON engineering",
+      "acceptance": "Independent beta, cloud, billing and native milestones, dependencies and risk gates documented.",
+      "depends_on": [
+        "T01"
+      ],
+      "evidence": [
+        "https://github.com/cdxidigital/aeonapp/blob/main/docs/LAUNCH_ROADMAP.md"
+      ]
+    },
+    {
+      "id": "T03",
+      "title": "Preserve responsive AEON design direction",
+      "stage": 3,
+      "points": 2,
+      "status": "done",
+      "owner": "AEON engineering",
+      "acceptance": "Existing theme tokens, responsive navigation and report studio design retained, not replaced.",
+      "depends_on": [
+        "T02"
+      ],
+      "evidence": [
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/styles.css",
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/components/aeon/ReportStudio.tsx"
+      ]
+    },
+    {
+      "id": "T04",
+      "title": "Define critical first-visit and report journeys",
+      "stage": 3,
+      "points": 2,
+      "status": "done",
+      "owner": "AEON engineering",
+      "acceptance": "Onboarding, sample disclosure, chart editing, reading selection and uncertainty flows appear in source.",
+      "depends_on": [
+        "T02"
+      ],
+      "evidence": [
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/components/aeon/AeonApp.tsx",
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/components/aeon/ReportStudio.tsx"
+      ]
+    },
+    {
+      "id": "T05",
+      "title": "Reuse tested app foundation and local-first data model",
+      "stage": 4,
+      "points": 3,
+      "status": "done",
+      "owner": "AEON engineering",
+      "acceptance": "React/TanStack/Vite architecture, local Store and Astronomy Engine calculation modules present.",
+      "depends_on": [
+        "T01"
+      ],
+      "evidence": [
+        "https://github.com/cdxidigital/aeonapp/blob/main/package.json",
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/lib/aeon/store.js",
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/lib/aeon/astro.js"
+      ]
+    },
+    {
+      "id": "T06",
+      "title": "Version release build and quality commands",
+      "stage": 4,
+      "points": 2,
+      "status": "done",
+      "owner": "AEON engineering",
+      "acceptance": "Node build commands and GitHub Actions workflow committed; execution failures tracked separately.",
+      "depends_on": [
+        "T05"
+      ],
+      "evidence": [
+        "https://github.com/cdxidigital/aeonapp/blob/main/package.json",
+        "https://github.com/cdxidigital/aeonapp/blob/main/.github/workflows/verify.yml"
+      ]
+    },
+    {
+      "id": "T07",
+      "title": "Implement core local-first reading workflows",
+      "stage": 5,
+      "points": 3,
+      "status": "done",
+      "owner": "AEON engineering",
+      "acceptance": "Today, Chart, Connections, Almanac and Journal routes/components are in source with local persistence.",
+      "depends_on": [
+        "T03",
+        "T05"
+      ],
+      "evidence": [
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/components/aeon/AeonApp.tsx",
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/lib/aeon/store.js"
+      ]
+    },
+    {
+      "id": "T08",
+      "title": "Implement Illustrated Reading Studio and PDF renderer",
+      "stage": 5,
+      "points": 3,
+      "status": "done",
+      "owner": "AEON engineering",
+      "acceptance": "Six report types/styles, client PDF export and report unit tests committed, with known Unicode/visual gaps.",
+      "depends_on": [
+        "T04",
+        "T05"
+      ],
+      "evidence": [
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/components/aeon/ReportStudio.tsx",
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/lib/aeon/report-studio.js",
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/lib/aeon/report-studio.test.mjs"
+      ]
+    },
+    {
+      "id": "T09",
+      "title": "Implement encrypted export and legacy backup import",
+      "stage": 5,
+      "points": 2,
+      "status": "done",
+      "owner": "AEON engineering",
+      "acceptance": "AES-GCM browser export and passphrase restore UI, backwards-compatible JSON and defensive tests committed.",
+      "depends_on": [
+        "T05"
+      ],
+      "evidence": [
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/lib/aeon/secure-backup.js",
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/lib/aeon/secure-backup.test.mjs",
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/components/aeon/AeonApp.tsx"
+      ]
+    },
+    {
+      "id": "T10",
+      "title": "Implement cinematic onboarding, lessons and theme selection",
+      "stage": 5,
+      "points": 2,
+      "status": "done",
+      "owner": "AEON engineering",
+      "acceptance": "New-user flow and theme states present in current main commit, subject to later usability validation.",
+      "depends_on": [
+        "T04"
+      ],
+      "evidence": [
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/components/aeon/AeonApp.tsx",
+        "https://github.com/cdxidigital/aeonapp/blob/main/src/styles.css",
+        "https://github.com/cdxidigital/aeonapp/commit/a775d9deab8d3119a716417de01da8a2aceeacbf"
+      ]
+    },
+    {
+      "id": "T11",
+      "title": "Implement and execute reproducible PDF QA sample matrix",
+      "stage": 5,
+      "points": 3,
+      "status": "doing",
+      "owner": "AEON engineering",
+      "acceptance": "Synthetic sample generator runs for all six report types and styles; samples, manifest and command output verified.",
+      "depends_on": [
+        "T08"
+      ],
+      "evidence": [
+        "https://github.com/cdxidigital/aeonapp/blob/feat/aeon-project-build-standard/scripts/qa-aeon-pdf.mjs"
+      ]
+    },
+    {
+      "id": "T12",
+      "title": "Polish beta settings, disclosure and error states",
+      "stage": 5,
+      "points": 2,
+      "status": "todo",
+      "owner": "AEON engineering",
+      "acceptance": "Privacy, export limitations, import errors and keyboard states reviewed and corrected against mobile design.",
+      "depends_on": [
+        "T09",
+        "T10"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "T13",
+      "title": "Render and inspect every representative PDF page",
+      "stage": 6,
+      "points": 5,
+      "status": "todo",
+      "owner": "AEON engineering",
+      "acceptance": "Sample matrix renders in independent PDF engine; Unicode, page overflow, chart alignment, contrast and print quality signed off.",
+      "depends_on": [
+        "T08",
+        "T11"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "T14",
+      "title": "Pass responsive, keyboard and reduced-motion smoke tests",
+      "stage": 6,
+      "points": 5,
+      "status": "todo",
+      "owner": "AEON engineering",
+      "acceptance": "Recorded functional results at 320/390/768/1440px, keyboard navigation, mobile browsers and profile-first visit.",
+      "depends_on": [
+        "T07",
+        "T10",
+        "T12"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "T15",
+      "title": "Verify backup import/export recovery across browsers",
+      "stage": 6,
+      "points": 3,
+      "status": "todo",
+      "owner": "AEON engineering",
+      "acceptance": "Encrypted and legacy backups round-trip on clean device; tamper and wrong phrase do not overwrite data.",
+      "depends_on": [
+        "T09",
+        "T12"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "T16",
+      "title": "Restore GitHub Actions quality job execution",
+      "stage": 6,
+      "points": 3,
+      "status": "blocked",
+      "owner": "Repository Actions administrator",
+      "acceptance": "Verified main-branch build/test workflow executes steps and passes; unrelated Dependabot success does not qualify.",
+      "depends_on": [
+        "T06"
+      ],
+      "evidence": [
+        "https://github.com/cdxidigital/aeonapp/actions/runs/41041692581"
+      ]
+    },
+    {
+      "id": "T17",
+      "title": "Complete beta privacy, security and calculation QA",
+      "stage": 6,
+      "points": 3,
+      "status": "todo",
+      "owner": "AEON engineering",
+      "acceptance": "No private data leaves origin unexpectedly; uncertain time/house choices correct; error reports redacted and release claims reviewed.",
+      "depends_on": [
+        "T07",
+        "T08",
+        "T09"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "T18",
+      "title": "Record preview SHA, deployment and rollback smoke",
+      "stage": 7,
+      "points": 3,
+      "status": "todo",
+      "owner": "AEON engineering",
+      "acceptance": "Candidate revision, deployment ID, browser smoke evidence and tested rollback aligned to same release.",
+      "depends_on": [
+        "T13",
+        "T14",
+        "T15",
+        "T16",
+        "T17"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "T19",
+      "title": "Approve and distribute private beta",
+      "stage": 7,
+      "points": 2,
+      "status": "todo",
+      "owner": "AEON release owner",
+      "acceptance": "All beta release gate requirements approved by product owner, with support and incident route established.",
+      "depends_on": [
+        "T18"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "T20",
+      "title": "Publish operator handover and recovery guide",
+      "stage": 8,
+      "points": 2,
+      "status": "todo",
+      "owner": "AEON engineering",
+      "acceptance": "Canonical release instructions, known limitations, recovery/rollback, owner and monitoring stored with tested SHA.",
+      "depends_on": [
+        "T18"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "T21",
+      "title": "Establish first-week beta feedback and release cadence",
+      "stage": 8,
+      "points": 2,
+      "status": "todo",
+      "owner": "AEON release owner",
+      "acceptance": "Consent-respecting issue intake and initial usage/performance measures defined with named response owner.",
+      "depends_on": [
+        "T19",
+        "T20"
+      ],
+      "evidence": []
+    }
+  ],
+  "next_action": "Run npm ci && npm run qa:pdf on a checkout of feat/aeon-project-build-standard; inspect generated manifest and render sample PDFs, then begin mobile/browser smoke and repair findings.",
+  "blockers": [
+    {
+      "id": "B01",
+      "title": "GitHub Actions quality job fails without visible steps",
+      "owner": "Repository Actions administrator",
+      "resolution": "Inspect Actions permissions, hosted-runner allocation and job diagnostic logs; rerun Test/typecheck/compile and attach successful job steps.",
+      "evidence": "https://github.com/cdxidigital/aeonapp/actions/runs/41041692581"
+    },
+    {
+      "id": "B02",
+      "title": "No authenticated Vercel deployment access in this session",
+      "owner": "AEON release owner",
+      "resolution": "Reconnect/authorize Vercel project or supply inspectable deployment evidence before associating any final release SHA.",
+      "evidence": "Linked Vercel connector reported account ineligible on 2026-11-08"
+    },
+    {
+      "id": "B03",
+      "title": "No browser/device PDF visual QA evidence",
+      "owner": "AEON QA",
+      "resolution": "Execute docs/BETA_QA_CHECKLIST.md against synthetic fixtures, record screenshots and issue fixes.",
+      "evidence": "docs/BETA_QA_CHECKLIST.md"
+    }
+  ],
+  "scope_history": [
+    {
+      "date": "2026-11-08",
+      "reason": "Introduce eight-stage canonical ledger for existing AEON roadmap; lock Beta 0.9 active scope; cloud sync, purchases and native stores remain separate Next/Later releases.",
+      "before": {
+        "release": "Unscoped continuous build/launch roadmap",
+        "points": null
+      },
+      "after": {
+        "release": "Beta 0.9 - local-first private web beta",
+        "points": 56
+      },
+      "decision": "No delivery date, budget or production permission inferred."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D01",
+      "date": "2026-11-08",
+      "decision": "AEON Beta 0.9 is local-first free responsive web; cloud/auth/payments/native are excluded from current denominator.",
+      "reason": "Existing documented roadmap and repository architecture."
+    },
+    {
+      "id": "D02",
+      "date": "2026-11-08",
+      "decision": "main@a775d9d is current source; PR #5 merged, PR #6 still open but its feature files are already on main. No duplicate merge.",
+      "reason": "GitHub branch/tree/PR evidence checked."
+    },
+    {
+      "id": "D03",
+      "date": "2026-11-08",
+      "decision": "Preserve AEON Paper/Night/Live themes, cinematic opening, first-visit education and Illustrated Studio.",
+      "reason": "Latest default-branch source state."
+    },
+    {
+      "id": "D04",
+      "date": "2026-11-08",
+      "decision": "Do not claim green release CI based on successful Dependabot run. Quality workflow failed before steps.",
+      "reason": "GitHub Actions job records."
+    }
+  ],
+  "checks": [
+    {
+      "name": "Default branch source and feature inventory",
+      "result": "pass",
+      "evidence": "main@a775d9deab8d3119a716417de01da8a2aceeacbf; repository tree + files"
+    },
+    {
+      "name": "GitHub quality job",
+      "result": "fail",
+      "evidence": "https://github.com/cdxidigital/aeonapp/actions/runs/41041692581; no job steps"
+    },
+    {
+      "name": "Dependabot job",
+      "result": "pass_unrelated",
+      "evidence": "https://github.com/cdxidigital/aeonapp/actions/runs/41041716733"
+    },
+    {
+      "name": "PDF synthetic QA generation on checked-out branch",
+      "result": "not_run",
+      "evidence": "scripts/qa-aeon-pdf.mjs added; execution environment needs repository checkout"
+    },
+    {
+      "name": "Mobile/browser PDF and backup usability",
+      "result": "not_run",
+      "evidence": "docs/BETA_QA_CHECKLIST.md"
+    }
+  ],
+  "improvement_log": [
+    {
+      "id": "I01",
+      "date": "2026-11-08",
+      "observation": "Repeated launch roadmap rounds and stale stacked PR #6 made completed code look pending.",
+      "proposal": "On resume compare default-branch tree and PR head before counting work; keep one release denominator and tested SHA in project-state.json.",
+      "scope": "AEON project-local; reusable candidate awaiting cross-project trial",
+      "status": "pending",
+      "template_version": "1.0.0"
+    },
+    {
+      "id": "I02",
+      "date": "2026-11-08",
+      "observation": "Unrelated successful Dependabot check was adjacent to failed quality job.",
+      "proposal": "Record job-level evidence, not overall repository green icons.",
+      "scope": "Project-local process rule; candidate reusable",
+      "status": "adopted_locally",
+      "template_version": "1.0.0"
+    }
+  ]
+}
