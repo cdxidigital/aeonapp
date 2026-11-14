@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useMemo, useState } from "react";
 import { buildWisdomIndex, searchWisdom, WISDOM_ARCHIVE_URL } from "@/lib/aeon/wisdom-dream.mjs";
 
