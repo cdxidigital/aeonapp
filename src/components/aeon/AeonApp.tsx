@@ -6,9 +6,10 @@ import { Store } from "@/lib/aeon/store.js";
 import { UI } from "@/lib/aeon/visuals.js";
 import { Icon, KindPill, Modal, ProfileForm, Svg, ZoneField, download, hash, uid } from "./bits";
 import { ReportStudio } from "./ReportStudio";
+import { CosmicLibrary } from "./CosmicLibrary";
 import { encryptBackup, decryptBackup, isEncryptedBackup } from "@/lib/aeon/secure-backup.js";
 
-const PAGES = ["today", "chart", "connections", "almanac", "readings", "journal"] as const;
+const PAGES = ["today", "chart", "connections", "almanac", "readings", "journal", "library"] as const;
 type Page = (typeof PAGES)[number];
 const MOODS = ["Open", "Grounded", "Restless", "Hopeful", "Reflective"];
 const NAV: [Page, string, string][] = [
@@ -18,6 +19,7 @@ const NAV: [Page, string, string][] = [
   ["almanac", "calendar", "Almanac"],
   ["readings", "spark", "Readings"],
   ["journal", "journal", "Journal"],
+  ["library", "spark", "Cosmic Library"],
 ];
 
 const ONBOARD = [
@@ -235,6 +237,7 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
       almanac: "Almanac",
       readings: "Illustrated Readings",
       journal: "Journal",
+      library: "Cosmic Library",
     };
     document.title = `${titles[page]} · AEON`;
   }, [page]);
@@ -1911,6 +1914,7 @@ export function AeonApp({ initialIso, initialZone }: { initialIso: string; initi
             />
           )}
           {page === "journal" && journalPage()}
+          {page === "library" && <CosmicLibrary />}
         </main>
         <footer className="site-footer">
           <span>Developed by fourtee2apps. Astrology as reflection. Your choices remain yours.</span>
